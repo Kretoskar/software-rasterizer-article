@@ -9,8 +9,6 @@ void Backbuffer::Resize(WindowCoord width, WindowCoord height)
         return;
     }
 
-    Release();
-
     _width = width;
     _height = height;
     
@@ -23,20 +21,11 @@ void Backbuffer::Resize(WindowCoord width, WindowCoord height)
     _info.bmiHeader.biCompression = BI_RGB;
 
     const size_t size = static_cast<size_t>(width) * static_cast<size_t>(height) * 4;
-    _memory = VirtualAlloc(nullptr, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-    _pixels = static_cast<Color32*>(_memory);
-    
-    _stride = _width * sizeof(Color32);
-    _stridePixels = _width;
+    _pixels.resize(size);
 }
 
 void Backbuffer::Clear(Color32 color)
 {
-    if (!_pixels)
-    {
-        return;
-    }
-
     const WindowCoord pixelCount = _width * _height;
     for (WindowCoord i = 0; i < pixelCount; ++i)
     {
@@ -46,21 +35,22 @@ void Backbuffer::Clear(Color32 color)
 
 void Backbuffer::PutPixel(WindowCoord x, WindowCoord y, Color32 color)
 {
-    if (!_pixels)
+    if (_pixels.empty())
     {
         return;
     }
+    
     if (x < 0 || y < 0 || x >= _width || y >= _height)
     {
         return;
     }
 
-    _pixels[y * _stridePixels + x] = color;
+    _pixels[y * _width + x] = color;
 }
 
-void Backbuffer::Present(HDC dc, WindowCoord clientWidth, WindowCoord clientHeight) const
+void Backbuffer::Present(HDC dc, WindowCoord width, WindowCoord height) const
 {
-    if (!_memory)
+    if (_pixels.empty())
     {
         return;
     }
@@ -68,20 +58,11 @@ void Backbuffer::Present(HDC dc, WindowCoord clientWidth, WindowCoord clientHeig
     StretchDIBits
     (
         dc,
-        0, 0, clientWidth, clientHeight,
+        0, 0, width, height,
         0, 0, _width, _height,
-        _memory,
+        _pixels.data(),
         &_info,
         DIB_RGB_COLORS,
         SRCCOPY
     );
-}
-
-void Backbuffer::Release()
-{
-    if (_memory)
-    {
-        VirtualFree(_memory, 0, MEM_RELEASE);
-        _memory = nullptr;
-    }
 }

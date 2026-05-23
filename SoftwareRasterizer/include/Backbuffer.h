@@ -2,6 +2,7 @@
 
 #include <windows.h>
 #include <cstdint>
+#include <vector>
 
 #include "Color32.h"
 #include "Types.h"
@@ -13,39 +14,24 @@ namespace SR
     class Backbuffer
     {
     public:
-        Backbuffer() = default;
-        ~Backbuffer() { Release(); }
-    
-        // Resize the window with the bacbuffer
-        void Resize(WindowCoord width, WindowCoord height);
+        Backbuffer()
+        {
+            _pixels.reserve(2560 * 1440);
+        }
         
-        // Clear the window with given color
+        void Resize(WindowCoord width, WindowCoord height);
         void Clear(Color32 color);
-        // Put pixel to backbuffer
         void PutPixel(WindowCoord x, WindowCoord y, Color32 color);
+        void Present(HDC dc, WindowCoord width, WindowCoord height) const;
     
-        // Preset the backbuffer to window
-        void Present(HDC dc, WindowCoord clientWidth, WindowCoord clientHeight) const;
-    
-        WindowCoord GetWidth() const { return _width; }
-        WindowCoord GetHeight() const { return _height; }
+        [[nodiscard]] WindowCoord GetWidth() const { return _width; }
+        [[nodiscard]] WindowCoord GetHeight() const { return _height; }
     
     private:
-        void Release();
-    
-        // raw memory of tightly packed pixels, stored row by row
-        // so to get pixel at xy - y * width + x;
-        void* _memory = nullptr;
-        // _memory cast to Color32 ptr for easier access
-        Color32* _pixels = nullptr;
+        std::vector<Color32> _pixels;
         
         WindowCoord _width = 0;
         WindowCoord _height = 0;
-        
-        // stride to get to next element in _memory
-        i16 _stride = 0;
-        // stride to get to next element in _pixels
-        i16 _stridePixels = 0;
         
         // format description of backbuffer for Win32
         BITMAPINFO _info = {};

@@ -16,7 +16,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
     while (window.ProcessMessages())
     {
-        SR::Backbuffer& buffer = window.Buffer();
+        SR::Backbuffer& buffer = window.GetBackbuffer();
 
         SR::Color32 clearColor = SR::Color32::FromRGBA(100, 100, 100, 255);
         buffer.Clear(clearColor);

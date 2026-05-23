@@ -1,5 +1,7 @@
 ﻿#include "Window.h"
 
+#include <stdexcept>
+
 using namespace SR;
 
 Window::~Window()
@@ -50,6 +52,7 @@ void Window::Register()
     wc.lpszClassName = L"SoftwareRasterizerWindowClass";
     wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
 
+    
     if (!RegisterClassExW(&wc))
     {
         throw std::runtime_error("RegisterClassExW failed");
